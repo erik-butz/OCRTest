@@ -1,5 +1,6 @@
 const tesseract = require("node-tesseract-ocr")
 const fs = require('fs');
+const removeEmptyLines = require("remove-blank-lines");
 
 const config = {
   lang: "eng",
@@ -8,21 +9,24 @@ const config = {
 }
 
 const main = async () => {
-  const res = await tesseract.recognize("Top200Part1.jpg", config)
-    .catch((error) => {
-      console.log(error.message)
+  for (let i = 1; i <= 6; i++) {
+    const res = await tesseract.recognize(`Top200Part${i}.jpg`, config)
+      .catch((error) => {
+        console.log(error.message)
+      })
+    fs.appendFile('scannedimage.txt', res, (err) => {
+      if (err)
+        console.log(err);
     })
-  fs.appendFile('scannedimage.txt', res, (err) => {
+  }
+  const data = fs.readFileSync('scannedimage.txt', (err) => {
     if (err)
-      console.log(err);
-    else {
-      console.log("File written successfully\n");
-      console.log("The written has the following contents:");
-      console.log(fs.readFileSync("scannedimage.txt", "utf8"));
-    }
+      console.log(err)
   })
-
-  console.log(res)
+  let newValue = data.toString().replace(/\r\n\r\n/g, '\r\n')
+  console.log(newValue)
+  console.log('Successfully removed all blanks')
+  fs.writeFileSync('TrimmedPlayers.txt', newValue)
 }
 
 main()
